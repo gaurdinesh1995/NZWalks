@@ -6,6 +6,7 @@ using NZWalks.API.Data;
 using NZWalks.API.Models.Domains;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
+using NZWalks.API.Validators;
 
 namespace NZWalks.API.Controllers
 {
@@ -51,17 +52,19 @@ namespace NZWalks.API.Controllers
         // Post to create New Region
         //Post: https://localhost:portnumber/api/regions
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
-            // Map or onvert DTO to Domain Model
-            var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
-            // Use domain model to create Regionn
-            regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
+            
+                // Map or convert DTO to Domain Model
+                var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
+                // Use domain model to create Regionn
+                regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
 
-            // Map domain model back to DTO
-            var regionDto = mapper.Map<RegionDto>(regionDomainModel);
+                // Map domain model back to DTO
+                var regionDto = mapper.Map<RegionDto>(regionDomainModel);
 
-            return CreatedAtAction(nameof(GetById), new { id = regionDto.Id }, regionDto);
+                return CreatedAtAction(nameof(GetById), new { id = regionDto.Id }, regionDto);
         }
 
         // Update Region
