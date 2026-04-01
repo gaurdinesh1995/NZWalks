@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NZWalks.API.Data;
 using NZWalks.API.Models.Domains;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
@@ -11,14 +13,16 @@ namespace NZWalks.API.Controllers
     [ApiController]
     public class WalksController : ControllerBase
     {
-        public WalksController(IMapper mapper, IWalkRepository walkRepository)
+        public WalksController(IMapper mapper, IWalkRepository walkRepository, NZWalksDbContext dbcontext)
         {
             Mapper = mapper;
             WalkRepository = walkRepository;
+            Dbcontext = dbcontext;
         }
 
         public IMapper Mapper { get; }
         public IWalkRepository WalkRepository { get; }
+        public NZWalksDbContext Dbcontext { get; }
 
         // CREATEa walk
         // POST: /api/walks
@@ -36,13 +40,25 @@ namespace NZWalks.API.Controllers
         }
 
         // Get all walks
-        //GET: /api/walks
+        //GET: /api/walks?filterOn=Name&filterQuery=Track&filterQuery&sortBy=Name&isAscending=true&pageNumber=1&pageSize=5
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string?filterQuery,
+          [FromQuery] string? sortBy, [FromQuery] bool?isAscending,
+          [FromQuery]int pageNumber = 1, [FromQuery] int pageSize = 5 )
         {
-            var walksDomainModel = await WalkRepository.GetAllAsync();
+            var totalRecords = await Dbcontext.Walks.CountAsync();
+
+            var walksDomainModel = await WalkRepository.GetAllAsync(filterOn,filterQuery,sortBy,isAscending??true,pageNumber,pageSize);
             //Map Domain model to DTO
-            return Ok(Mapper.Map<List<WalkDto>>(walksDomainModel));
+            //return Ok(Mapper.Map<List<WalkDto>>(walksDomainModel));
+            return Ok(new
+            {
+                Data = Mapper.Map<List<WalkDto>>(walksDomainModel),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = totalRecords,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+            });
 
         }
 
