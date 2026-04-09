@@ -20,17 +20,20 @@ namespace NZWalks.API.Controllers
         private readonly NZWalksDbContext dbContext;
         private readonly IRegionRepository regionRepository;
         private readonly IMapper mapper;
+        private readonly ILogger<RegionsController> logger;
 
-        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository, IMapper mapper)
+        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository, IMapper mapper, ILogger<RegionsController> logger)
         {
             this.dbContext = dbContext;
             this.regionRepository = regionRepository;
             this.mapper = mapper;
+            this.logger = logger;
         }
         //GEt all regions
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+
             // Get Data from Database - Domain models
             var regions = await regionRepository.GetAllAsync();
             return Ok(mapper.Map<List<Region>>(regions));
